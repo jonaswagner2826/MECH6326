@@ -329,11 +329,11 @@ These are independent log-normal variables:\[
 The goal is to maximize the total expected revenue from the sales in the two rounds.
 
 We consider three different information patterns.
-\begin{itemize}
+\begin{enumerate}
     \item \emph{Prescient.} You know $p_0$ and $p_1$ before you decide the amounds to sell in each period.
     \item \emph{No knowledge.} You do not know the prices, but you know their distribution parameters.
-    \item \emph{Partial knowledge.} You ar told the price $p_0$ before you decide houw much to sell in period 0, and you are told the price $p_1$ before you decide how much to sell in period 1.
-\end{itemize}
+    \item \emph{Partial knowledge.} You are told the price $p_0$ before you decide how much to sell in period 0, and you are told the price $p_1$ before you decide how much to sell in period 1.
+\end{enumerate}
 
 % 3a ------------------------------------------
 \subsection{}
@@ -343,8 +343,35 @@ The amount sold in each period can depend on the problem data $(B,\mu_0,\mu_1,\s
 
 \Solution
 
+\begin{enumerate}
+    \item \emph{Prescient.}
+    The optimal solution is to sell all the stock during whichever period's price is higher.
+    \item \emph{No knowledge.}
+    The optimal solution is to maximize the expected amount depending on given the selling of each.
+    (i.e)\begin{align*}
+        \max_{b_i\in \N} E[b_0 p_0 + b_1 p_1] 
+            &= b_0 E[p_0] + b_1 E[p_1] \\
+            &= b_0 e^{\mu_0+\sigma_1^2/2} + b_1 e^{\mu_1+\sigma_1^2/2}
+    \end{align*}
+    The solution will be selecting to sell all during whenever $E[p_0]$ or $E[p_1]$ is larger.
+    (i.e)\[
+        \begin{cases}
+            b_0 = B, b_1 = 0 &E[p_0] >= E[p_1]\\
+            b_0 = 0, b_1 = B &E[p_0] < E[p_1]
+        \end{cases}    
+    \]
+    \item \emph{Partial knowledge.}
+    Since the events are causal, the only choice is before the first period.
+    The optimal solution will be to sell all in the first if the price is greater than the expected price of the second. 
+    (i.e.) \[
+        \begin{cases}
+            b_0 = B, b_1 = 0 &p_0 >= E[p_1]\\
+            b_0 = 0, b_1 = B &p_0 < E[p_1]
+        \end{cases}    
+    \]
+\end{enumerate}
 
-
+\newpage
 % 3b --------------------------------------------
 \subsection{}
 \Problem
