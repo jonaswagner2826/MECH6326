@@ -44,7 +44,7 @@ set(gca, 'xscale', 'log')
 
 N = 50;
 x_0 = 1;
-for n_sim = [10,100,1000,10000]
+for n_sim = [10,100,1000,10000, 1000000]
     rng(1);% set standard seed
     X = zeros(n_sim,N);
     for j = 1:n_sim
