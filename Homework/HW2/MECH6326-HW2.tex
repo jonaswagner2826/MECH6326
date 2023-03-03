@@ -22,7 +22,7 @@
 % \usepackage{enumitem}
 % \renewcommand{\theenumi}{\alph{enumi}}
 \renewcommand*{\thesection}{Problem \arabic{section}}
-\renewcommand*{\thesubsection}{\arabic{section}.\alph{subsection}}
+\renewcommand*{\thesubsection}{\arabic{section}\alph{subsection})}
 \renewcommand*{\thesubsubsection}{}%\quad \quad \roman{subsubsection})}
 
 \newcommand{\Problem}{\subsubsection*{\textbf{PROBLEM:}}}
@@ -497,9 +497,63 @@ For $k=0$, \[
 \textbf{Markov Chains}
 % Problem 4 ----------------------------------------------
 \section{Markov Chain Distributions}
+Consider a Markov Chain with the transition graph in \figurename \ \ref{fig:pblm4_markovchain}.
 
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.25\textwidth]{figs/pblm4_markovchain.png}
+    \caption{Markov Chain transition graph for problem 4 (self-loops are omitted)}
+    \label{fig:pblm4_markovchain}
+\end{figure}
 
+Suppose the initial state is $x_0 = 1$, and therefore $p_0 = \mqty[1&0&0&0&0]$.
 
+\subsection{}
+\Problem
+Use distribution propagation to compute the following quantities at $N = 50$:
+\begin{itemize}
+    \item $P(x_N = 1)$
+    \item $\frac{1}{N+1} \sum_{k=0}^N P(x_k = 1)$
+\end{itemize}
+
+\Solution
+The Markov Chain in \figurename \ \ref{fig:pblm4_markovchain} is associated with the transition matrix \[
+    P = \mqty[
+        0.75    &0.05   &0.25   &0      &0\\
+        0.05    &0.15   &0.3    &0.15   &0\\
+        0.2     &0.15   &0.1    &0      &0.2\\
+        0       &0.65   &0      &0.4    &0.35\\
+        0       &0      &0.35   &0.45   &0.45
+    ]
+\]
+
+Since the propagation of probabilities is given as \[
+    p_{k+1} = p_{k} P
+\] we have \[
+    p_{k} = p_0 P^{k}
+\] thus \[
+    p_{N} = p_0 P^{N} 
+\] which we can calculate with matlab.
+
+The resulted probability for $P(x_N = 1)$ is the first element in $p_{N}$.
+
+Similarly, the sum is the first element from the sum calculated as \[
+    \frac{1}{N+1} \sum_{k=1}^N p_k
+    = \frac{1}{N+1} \sum_{k=1}^N p_0 P^{k}
+    = \frac{1}{N+1} p_0 \sum_{k=1}^N P^{k}
+\] which can also be calculated in matalab.
+
+\subsection{}
+\Problem
+Then use Monte Carlo estimation to approximate these quantities.
+Generate plots of your estimates versus the number of sample trajectories used from 10 up to 10000 sample trajectories.
+Compare the simulation results with the exact values computed previously.
+\Solution
+
+See attached MATLAB results.
+
+\newpage
+% \includepdf{MECH6326_HW2.pdf}
 
 
 
@@ -515,3 +569,4 @@ For $k=0$, \[
 
 
 \end{document}
+
