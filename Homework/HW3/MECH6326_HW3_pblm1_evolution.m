@@ -2,7 +2,6 @@ function X = MECH6326_HW3_pblm1_evolution(X,P_1,P_2)
     %MECH6326_HW3_pblm1_evolution 
     n = size(X,1);
 
-%     X_update = zeros(size(X));
     % Evolution of each state (dependent on lots of things)
     for i = 1:n
         for j = 1:n
@@ -12,19 +11,13 @@ function X = MECH6326_HW3_pblm1_evolution(X,P_1,P_2)
                 all(testvals>=1); ...
                 any(testvals~=[i;j])...
                 ]));
-            if any(X(testvals(1,:),testvals(2,:),2)==1)
-                P=P_2;
-                p = 'p_2';
-            else
-                P=P_1;
-                p = 'p_1';
+            P = P_2;
+            for k = 1:size(testvals,2)
+                if X(testvals(1,k),testvals(2,k),2) == 1; P = P_1;end
             end
-            currentX = reshape(X(i,j,:),[1,4]);
+            newState = randsample(4,1,true,reshape(X(i,j,:),[1,4])*P);
             X(i,j,:) = zeros(4,1);
-            X(i,j,randsample(4,1,true,currentX*P)) = 1;
-%             if temp < 
-% %             if temp < P(X)
-%             X(i,j,:) = reshape(X(i,j,:),[1,4])*P;
+            X(i,j,newState) = 1;
         end
     end
 end

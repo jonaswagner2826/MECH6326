@@ -117,7 +117,7 @@ Let The two transition matrices for a single node will be defined as
         0.6 & 0.4 & 0   & 0   \\
         0.2 & 0.6 & 0.1 & 0.1 \\
         0   & 0   & 1   & 0   \\
-        0   & 0   & 0   & 1]
+        0   & 0   & 0   & 1
     ], \quad P_2 = \mqty[
         1   & 0   & 0   & 0   \\
         0.2 & 0.6 & 0.1 & 0.1 \\
@@ -131,36 +131,80 @@ This is written as a neighbor dependent update equation in a function and then r
 The number dead for each simulation becomes the sum of all in the dead state at $N=50$.
 
 \subsection{}
-$E[\sum_{i,j} x_{i,j}^{(3)}] = $
-
-
+$E[\sum_{i,j} x_{i,j}^{(3)}] \approx 77.36$. (well technically it'd be either 77 or 78...)
 \subsection{}
+$E[\sum_{i,j} x_{i,j}^{(3)}] \approx 69.02$. (well technically it'd be either 69 or 70...)
 
-
-See attached MATLAB.
-
+\subsection*{See attached MATLAB scripts.}
 
 \newpage
 % Problem 2 ----------------------------------------------
 \section{Computing limiting transition matrix power and steady state distributions.}
 Consider the following Markov Chain transition graph (self-loops are not shown and can be determined from outgoing edges):
 \begin{figure}[h]
-    
+    \centering
+    \includegraphics[width=0.5\textwidth]{figs/MECH6326_pblm2_chains.png}
 \end{figure}
 
 \subsection{}
 \Problem
 Identify and classify the communicating classes as transient, ergodic, absorbing, or periodic.
 \Solution
-
+\begin{itemize}
+    \item Transient: (1,2,3), (4,5)
+    \item Ergodic: ... Probably a bunch... I forgot how to classify ergodic vs periodic
+    \item Absorbing: 14, 15, 16
+    \item Periodic: (11, 12, 13), (6,7,8,9,10)
+\end{itemize}
 
 
 \subsection{}
 \Problem
 Do transition matrix powers for this chain converge? If so, compute the limiting value $L = \lim_{t \to \infty} P^t$.
 \Solution
+The transition matrix equivalent of the markov chain is defined as:
+\[
+    P = \left[ \begin{array}{rrrrrrrrrrrrrrrr}
+    0.2 & 0.1 & 0   & 0   & 0   & 0   & 0   & 0   & 0   & 0 & 0   & 0   & 0   & 0 & 0 & 0 \\
+    0.3 & 0.1 & 0.7 & 0   & 0   & 0   & 0   & 0   & 0   & 0 & 0   & 0   & 0   & 0 & 0 & 0 \\
+    0   & 0.6 & 0.2 & 0   & 0   & 0   & 0   & 0   & 0   & 0 & 0   & 0   & 0   & 0 & 0 & 0 \\
+    0   & 0   & 0   & 0   & 0.8 & 0   & 0   & 0   & 0   & 0 & 0   & 0   & 0   & 0 & 0 & 0 \\
+    0   & 0   & 0   & 0.5 & 0.1 & 0   & 0   & 0   & 0   & 0 & 0   & 0   & 0   & 0 & 0 & 0 \\
+    0   & 0   & 0   & 0   & 0   & 0.2 & 0.2 & 0   & 0   & 0 & 0   & 0   & 0   & 0 & 0 & 0 \\
+    0   & 0.2 & 0   & 0   & 0   & 0.4 & 0.4 & 0.9 & 0.2 & 0 & 0   & 0   & 0   & 0 & 0 & 0 \\
+    0   & 0   & 0   & 0   & 0   & 0   & 0.3 & 0.1 & 0   & 1 & 0   & 0   & 0   & 0 & 0 & 0 \\
+    0   & 0   & 0   & 0   & 0   & 0.4 & 0   & 0   & 0.2 & 0 & 0   & 0   & 0   & 0 & 0 & 0 \\
+    0   & 0   & 0   & 0   & 0   & 0   & 0.1 & 0   & 0.6 & 0 & 0   & 0   & 0   & 0 & 0 & 0 \\
+    0   & 0   & 0   & 0   & 0.1 & 0   & 0   & 0   & 0   & 0 & 0.2 & 0.5 & 0.1 & 0 & 0 & 0 \\
+    0   & 0   & 0   & 0   & 0   & 0   & 0   & 0   & 0   & 0 & 0.1 & 0.2 &     & 0 & 0 & 0 \\
+    0   & 0   & 0   & 0   & 0   & 0   & 0   & 0   & 0   & 0 & 0.7 & 0.3 & 0.9 & 0 & 0 & 0 \\
+    0.5 & 0   & 0   & 0   & 0   & 0   & 0   & 0   & 0   & 0 & 0   & 0   & 0   & 1 & 0 & 0 \\
+    0   & 0   & 0.1 & 0   & 0   & 0   & 0   & 0   & 0   & 0 & 0   & 0   & 0   & 0 & 1 & 0 \\
+    0   & 0   & 0   & 0.5 & 0   & 0   & 0   & 0   & 0   & 0 & 0   & 0   & 0   & 0 & 0 & 1
+    \end{array}\right]^T
+\]
 
-
+So this matrix powers are not divergent, however the matrix is both singular and contains multiple eigenvalues with $\abs{\lambda} = 1$ so this leads to it not converging; however, it does appear to reach some form of steady-state experimentally/through estimation, thus the approximate solution from matlab is as follows:
+\[
+    L \approx P^{500} = \left[ \begin{array}{rrrrrrrrrrrrrrrr}
+    0     & 0     & 0     & 0      & 0      & 0     & 0     & 0     & 0     & 0     & 0     & 0     & 0     & 0 & 0 & 0 \\
+    0     & 0     & 0     & 0      & 0      & 0     & 0     & 0     & 0     & 0     & 0     & 0     & 0     & 0 & 0 & 0 \\
+    0     & 0     & 0     & 0      & 0      & 0     & 0     & 0     & 0     & 0     & 0     & 0     & 0     & 0 & 0 & 0 \\
+    0     & 0     & 0     & 0      & 0      & 0     & 0     & 0     & 0     & 0     & 0     & 0     & 0     & 0 & 0 & 0 \\
+    0     & 0     & 0     & 0      & 0      & 0     & 0     & 0     & 0     & 0     & 0     & 0     & 0     & 0 & 0 & 0 \\
+    0.027 & 0.071 & 0.062 & 0      & 0      & 0.120 & 0.120 & 0.120 & 0.120 & 0.120 & 0     & 0     & 0     & 0 & 0 & 0 \\
+    0.107 & 0.285 & 0.250 & 0      & 0      & 0.481 & 0.481 & 0.481 & 0.481 & 0.481 & 0     & 0     & 0     & 0 & 0 & 0 \\
+    0.056 & 0.151 & 0.132 & 0      & 0      & 0.254 & 0.254 & 0.254 & 0.254 & 0.254 & 0     & 0     & 0     & 0 & 0 & 0 \\
+    0.013 & 0.036 & 0.031 & 0      & 0      & 0.060 & 0.060 & 0.060 & 0.060 & 0.060 & 0     & 0     & 0     & 0 & 0 & 0 \\
+    0.019 & 0.050 & 0.044 & 0      & 0      & 0.084 & 0.084 & 0.084 & 0.084 & 0.084 & 0     & 0     & 0     & 0 & 0 & 0 \\
+    0     & 0     & 0     & 0.0118 & 0.0235 & 0     & 0     & 0     & 0     & 0     & 0.118 & 0.118 & 0.118 & 0 & 0 & 0 \\
+    0     & 0     & 0     & 0.0015 & 0.0029 & 0     & 0     & 0     & 0     & 0     & 0.015 & 0.015 & 0.015 & 0 & 0 & 0 \\
+    0     & 0     & 0     & 0.0868 & 0.1735 & 0     & 0     & 0     & 0     & 0     & 0.868 & 0.868 & 0.868 & 0 & 0 & 0 \\
+    0.694 & 0.185 & 0.162 & 0      & 0      & 0     & 0     & 0     & 0     & 0     & 0     & 0     & 0     & 1 & 0 & 0 \\
+    0.083 & 0.222 & 0.319 & 0      & 0      & 0     & 0     & 0     & 0     & 0     & 0     & 0     & 0     & 0 & 1 & 0 \\
+    0     & 0     & 0     & 0.9    & 0.8    & 0     & 0     & 0     & 0     & 0     & 0     & 0     & 0     & 0 & 0 & 1
+    \end{array}\right]^T
+\]
 
 \subsection{}
 \Problem
@@ -172,12 +216,59 @@ Do state distributions converge to a unique value for any initial distribution? 
 \end{itemize}
 
 \Solution
-
-
-
-
-
-
+\begin{itemize}
+    \item $(d_0^T L)^T = \mqty[.2 \\
+    0.3 \\
+    0   \\
+    0   \\
+    0   \\
+    0   \\
+    0   \\
+    0   \\
+    0   \\
+    0   \\
+    0   \\
+    0   \\
+    0   \\
+    0.5 \\
+    0   \\
+    0  ]$
+    \item $(d_0^T L)^T = \mqty[
+    0   \\
+    0   \\
+    0   \\
+    0   \\
+    0.5 \\
+    0   \\
+    0   \\
+    0   \\
+    0   \\
+    0   \\
+    0   \\
+    0   \\
+    0   \\
+    0   \\
+    0   \\
+    0.5 ]$
+    \item $(d_0^T L)^T = \mqty[
+    .05 \\
+    0.05 \\
+    0.3  \\
+    0.4  \\
+    0.05 \\
+    0    \\
+    0.1  \\
+    0    \\
+    0    \\
+    0    \\
+    0.05 \\
+    0    \\
+    0    \\
+    0    \\
+    0    \\
+    0 
+    ]$
+\end{itemize}
 
 
 \newpage
@@ -340,6 +431,8 @@ along with the distribution in \autoref{fig:pblm4b}.
 
 \newpage
 \includepdf[pages=-]{MECH6326_HW3.pdf}
+\newpage
+\includepdf[pages=-]{MECH6326_HW3_pblm1_evolution.pdf}
 
 % % Appendix ----------------------------------------------
 % \newpage
