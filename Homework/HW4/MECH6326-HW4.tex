@@ -110,6 +110,9 @@ The update equation for the position is as follows:\[
     \end{cases}
 \]
 
+You can model this as either augmenting the system with a previous time-step input to perform this simulation. 
+Alternatively, the objective 
+
 % 1a
 \subsection{}
 \Problem
@@ -123,11 +126,25 @@ Determine and plot the optimal policy and value function for the stage cost $\fo
 Comment on your result.
 \Solution
 
+See MATLAB code.
 
+The value function and optimal policy plots are shown in \autoref{fig:pblm1_valFunc} and \autoref{fig:pblm1_optPolicy} respectively.
 
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\textwidth]{figs/pblm1_valFunc.png}
+    \caption{Value function for problem 1.}
+    \label{fig:pblm1_valFunc}
+\end{figure}
 
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\textwidth]{figs/pblm1_optPolicy.png}
+    \caption{Optimal policy for problem 1. (yellow is East and blue is North)}
+    \label{fig:pblm1_optPolicy}
+\end{figure}
 
-
+The result is pretty much to be expected and makes sense logically.
 
 
 % 1b
@@ -135,14 +152,15 @@ Comment on your result.
 Simulate the system to estimate (via either distribution propagation or Monte Carlo) the success rate and plot a sample trajectory of a successful mission.
 
 
+The result for the controller seems to be either really terrible or the implimenation itself remains incorrect as the success rate is only around $13\%$.
+A sample of the successful trajectory is provided in \autoref{fig:pblm1_sampleTraj}.
 
-
-
-
-
-
-\textbf{Code:} See attached matlab code.
-
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\textwidth]{figs/pblm1_sampleTraj.png}
+    \caption{Sample successful trajectory for problem 1.}
+    \label{fig:pblm1_sampleTraj}
+\end{figure}
 
 \newpage
 \textbf{Linear Quadratic Problems}
@@ -176,7 +194,221 @@ $Q_k = \vb{I}$, $R_k = \vb{I}$, $\mathbf{E} [w_k] = \bar{w}_k = \smqty[0.1&-0.1&
 Report the optimal policy coefficients at time 0, $k=0$, and the optimal cost if the initial state is zero, $x_0 = \vb{0}$.
 
 \Solution
-For the general case, the dynamic program can be defined by the algorithm with stage cost, $g_{k}(x_k,u_k) = x_k^T Q_k x_k + u_k^T R_k u_k$, and terminal cost, $g_{N}(x_N) = x_N^T Q_N x_N$.
+The general dynamic programing algorithm for the time horizon, $N$, the terminal cost is set as $J_N(x_N) = g_{N}(x_N)$ and then minimizing the cost function for each time step recursively and then determines the optimal input and continues in reverse until $k=0$ to find the optimal policy $\pi_{k}^{\star}(x_k)$ $\forall_{k=0,\dots,N-1}$:\[
+    J_k(x_k) = \min_{u_k \in \mathcal{U}_k(x_k)} \vb{E}_w[
+        g_k(x_k,u_k,w_k) + J_{k+1}(f_k(x_k,u_k,w_k))
+        ]
+\] with $\pi_{k}^{\star}(x_k) = \arg \min$ of above.
+
+For the LQ case, the dynamic program can be defined by the algorithm with stage cost, $g_{k}(x_k,u_k) = x_k^T Q_k x_k + u_k^T R_k u_k$, and terminal cost, $g_{N}(x_N) = x_N^T Q_N x_N$.
+Initializing the terminal cost results in \[
+    J_N(x_N) = x_N^T Q_N x_N
+\] and then the recursive optimization for the LTV system becomes \[
+    J_k(x_k) =  \min_{u_k \in \mathcal{U}_k(x_k)} \vb{E}_w[
+        x_k^T Q_k x_k + u_k^T R_k u_k + J_{k+1}(A_k x_k + B_k u_k + w_k)
+    ]
+\]
+For simplicity, the quadratic form will be utilized and will be reduced to the LQ form, $x_k^T P_k x_k + r_k$, thus \[
+    J_N(x_k) = x_N^T Q_N x_N \implies P_N = Q_N, \ r_N = 0
+\] and the recursive iteration will also aim to reduce to an update for $P_k$ and $r_k$ as follows:
+\begin{align*}
+    J_k(x_k) &=  x_k^T P_k x_k + 2 q_k^T x_k + r_k \\
+    &= \min_{u_k \in \mathcal{U}_k(x_k)} \vb{E}_w[
+        x_k^T Q_k x_k + u_k^T R_k u_k + J_{k+1}(Ax_{k} + B u_{k} + w_k, u_{k+1}, w_{k+1})
+    ]
+\intertext{since $J_{k+1} = x_{k+1}^T P_{k+1} x_{k+1} + r_{k+1}$}
+    &= \min_{u_k \in \mathcal{U}_k(x_k)} \vb{E}_w[
+        x_k^T Q_k x_k + u_k^T R_k u_k 
+        + (A_k x_k + B_k u_k + w_k)^T P_{k+1} (A_k x_k + B_k u_k + w_k) 
+    \\ & \qquad \qquad \qquad 
+    + 2 q_{k+1}^T (A_k x_k + B_k u_k + w_k)
+        + r_{k+1}
+    ]
+    \\ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    &= \min_{u_k \in \mathcal{U}_k(x_k)} \vb{E}_w[
+        x_k^T Q_k x_k 
+        + u_k^T R_k u_k 
+        + (x_k^T A_k^T + u_k^T B_k^T + w_k^T) P_{k+1} (A_k x_k + B_k u_k + w_k)
+    \\ & \qquad \qquad \qquad 
+    + 2 q_{k+1}^T (A_k x_k + B_k u_k + w_k)
+        + r_{k+1}
+    ]
+    \\ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    &= \min_{u_k \in \mathcal{U}_k(x_k)} \vb{E}_w[
+        x_k^T Q_k x_k 
+        + u_k^T R_k u_k 
+        \\ & \qquad \qquad \qquad 
+        + \qty(
+            x_k^T A_k^T P_{k+1} A_k x_k
+            + x_k^T A_k^T P_{k+1} B_k u_k
+            + x_k^T A_k^T P_{k+1} w_k
+        )
+        \\ & \qquad \qquad \qquad 
+        + \qty(
+            u_k^T B_k^T P_{k+1} A_k x_k
+            + u_k^T B_k^T P_{k+1} B_k u_k
+            + u_k^T B_k^T P_{k+1} w_k
+        ) 
+        \\ & \qquad \qquad \qquad 
+        + \qty(
+            w_k^T P_{k+1} A_k x_k
+            + w_k^T P_{k+1} B_k u_k
+            + w_k^T P_{k+1} w_k
+        )
+        \\ & \qquad \qquad \qquad 
+        + \qty(
+            2 q_{k+1}^T A_k x_k
+            + 2 q_{k+1}^T B_k u_k
+            + 2 q_{k+1}^T w_k
+        )
+        + r_{k+1}
+    ]
+\intertext{Note that for scalar values the trace is equivalent and then the cyclic property of trace and linearity of expectation can be used to shift things around}
+    &= \min_{u_k \in \mathcal{U}_k(x_k)} \vb{E}_w[
+        x_k^T \qty(Q_k + A_k^T P_{k+1} A_k)
+        + u_k^T \qty(R_k + B_k^T P_{k+1} B_k) u_k
+        + x_k^T A_k^T P_{k+1} B_k u_k
+        + u_k^T B_k^T P_{k+1} A_k x_k
+    ]
+    \\ & \qquad \qquad \qquad 
+    + \vb{E}_w[
+        2 q_{k+1}^T A_k x_k
+        + 2 q_{k+1}^T B_k u_k
+        + r_{k+1}
+    ]
+    \\ & \qquad \qquad \qquad 
+    + \vb{E}_w[
+        x_k^T A_k^T P_{k+1} w_k
+        + w_k^T P_{k+1} A_k x_k
+    ]
+    \\ & \qquad \qquad \qquad 
+    + \vb{E}_w[
+        u_k^T B_k^T P_{k+1} w_k
+        + w_k^T P_{k+1} B_k u_k
+    ]
+    \\ & \qquad \qquad \qquad 
+    + \vb{E}_{w}[
+        w_k^T P_{k+1} w_k
+        + 2 q_{k+1}^T w_k
+    ]
+    \\ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    &= \min_{u_k \in \mathcal{U}_k(x_k)}
+        x_k^T \qty(Q_k + A_k^T P_{k+1} A_k)
+        + u_k^T \qty(R_k + B_k^T P_{k+1} B_k) u_k
+        + x_k^T A_k^T P_{k+1} B_k u_k
+        + u_k^T B_k^T P_{k+1} A_k x_k
+    \\ & \qquad \qquad \qquad
+        + 2 q_{k+1}^T A_k x_k
+        + 2 q_{k+1}^T B_k u_k
+        + r_{k+1}
+    \\ & \qquad \qquad \qquad 
+    + 2 \trace(P_{k+1} \vb{E}_w[x_k^T w_k])
+    % \\ & \qquad \qquad \qquad 
+    + 2 \trace(P_{k+1} B_k \vb{E}_2[w_k^T u_k])
+    % \\ & \qquad \qquad \qquad 
+    + \trace(P_{k+1} \vb{E}_w[w_k^T w_k])
+    + 2 q_{k+1}^T \vb{E}[w_k]
+    \\ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    &= 
+    x_k^T \qty(Q_k + A_k^T P_{k+1} A_k)
+    + 2 q_{k+1}^T A_k x_k
+    + 2 \trace(P_{k+1} \vb{E}_w[x_k^T w_k])
+    + \trace(P_{k+1} W_k)
+    + 2 q_{k+1}^T \bar{w}
+    + r_{k+1}
+    \\ & \qquad \qquad \qquad 
+    + \min_{u_k \in \mathcal{U}_k(x_k)}
+        u_k^T \qty(R_k + B_k^T P_{k+1} B_k) u_k
+        + 2 x_k^T A_k^T P_{k+1} B_k u_k
+        + 2 \trace(P_{k+1} B_k \vb{E}_w[w_k^T u_k])
+\end{align*}
+To solve this minimization, a derivative is performed w.r.t. $u_k$:
+\begin{align*}
+    0 &= \dv{u} \qty(
+        u_k^T \qty(R_k + B_k^T P_{k+1} B_k) u_k
+        + 2 x_k^T A_k^T P_{k+1} B_k u_k
+        + 2 q_{k+1}^T B_k u_k
+        + 2 \trace(P_{k+1} B_k \vb{E}_2[w_k^T u_k])
+    )\\
+    &= 2 \qty(R_k + B_k^T P_{k+1} B_k) u_k
+    + 2 x_k^T A_k^T P_{k+1} B_k
+    + 2 q_{k+1}^T B_k
+    + 2 \trace(P_{k+1} B_k \vb{E}_w[w_k^T])\\
+    &= (R_k + B_k^T P_{k+1} B_k) u_k
+    + x_k^T A_k^T P_{k+1} B_k
+    + q_{k+1}^T B_k
+    + \trace(P_{k+1} B_k \bar{w}_k^T)\\
+    -(R_k + B_k^T P_{k+1} B_k) u_k
+    &= x_k^T A_k^T P_{k+1} B_k
+    + \trace(P_{k+1} B_k w_k^T)\\
+    u_k &= -(R_k + B_k^T P_{k+1} B_k)^{-1} \qty(
+        x_k^T A_k^T P_{k+1} B_k
+        + q_{k+1}^T B_k
+        + \trace(P_{k+1} B_k \bar{w}_k^T)
+    )\\
+    u_k &= -(R_k + B_k^T P_{k+1} B_k)^{-1} \qty(
+        B_k^T P_{k+1} A_k) x_k
+        - (R_k + B_k^T P_{k+1} B_k)^{-1} \qty(q_{k+1}^T B_k + \trace(P_{k+1} B_k \bar{w}_k^T))
+\end{align*}
+Resulting an an optimal control law:\[
+    u_k^\star = K_k x_k + l_k
+\] with \[
+    K_k = -(R_k + B_k^T P_{k+1} B_k)^{-1} \qty(B_k^T P_{k+1} A_k)
+\] and \[
+    l_k = -(R_k + B_k^T P_{k+1} B_k)^{-1} \qty(q_{k+1}^T B_k + \trace(P_{k+1} B_k \bar{w}_k^T))
+\]
+
+Next, the cost function results is calculated recursively by
+\begin{align*}
+    J_{k}^{\star} &= x_k^T Q_k x_k + 2 q_k^T + r_k\\
+    &= x_k^T \qty(Q_k + A_k^T P_{k+1} A_k)
+    + 2 q_{k+1}^T A_k x_k
+    \\ & \qquad
+    + 2 \trace(P_{k+1} \vb{E}_w[x_k^T w_k])
+    + \trace(P_{k+1} W_k)
+    + 2 q_{k+1}^T \bar{w}
+    + r_{k+1}
+    \\ & \qquad 
+    + (-(R_k + B_k^T P_{k+1} B_k)^{-1} \qty(
+        x_k^T A_k^T P_{k+1} B_k
+        + q_{k+1}^T B_k
+        + \trace(P_{k+1} B_k \bar{w}_k^T)
+    ))^T \cdot
+    \\ & \qquad \qquad
+    \cdot \qty(R_k + B_k^T P_{k+1} B_k) (-(R_k + B_k^T P_{k+1} B_k)^{-1} \qty(
+        x_k^T A_k^T P_{k+1} B_k
+        + q_{k+1}^T B_k
+        + \trace(P_{k+1} B_k \bar{w}_k^T)
+    ))
+    \\ & \qquad 
+    + 2 x_k^T A_k^T P_{k+1} B_k (-(R_k + B_k^T P_{k+1} B_k)^{-1} \qty(
+        x_k^T A_k^T P_{k+1} B_k
+        + q_{k+1}^T B_k
+        + \trace(P_{k+1} B_k \bar{w}_k^T)
+    ))
+    \\ & \qquad 
+    + 2 \trace(P_{k+1} B_k \vb{E}_w[w_k^T (-(R_k + B_k^T P_{k+1} B_k)^{-1} \qty(x_k^T A_k^T P_{k+1} B_k
+        + q_{k+1}^T B_k
+        + \trace(P_{k+1} B_k \bar{w}_k^T)
+    ))])
+\end{align*}
+which when evaluated results in (after making an assumption of zero correlation between $x_k$ and $w_k$) \[
+    \begin{split}
+        J_{k+1}(x)
+        &=  x^T[(Q+A^TP_{k+1}A)-(A^TP_{k+1}^TB^T)(R+B^TP_{k+1}B)^{-1}]x\\
+        &+  2\bar{w}^T[(P_{k+1}A)-(R+B^TP_{k+1}B)^{-1}(BP_{k+1}A)]x\\
+        &+ \bar{w}^T[(P_{k+1}^TB)(R+B^TP_{k+1}B)-(B^TP_{k+1})]\bar{w}\\
+        &+ \mathbf{tr}(P_{k+1}W_t) + r_{k+1}
+    \end{split}    
+\]
+where 
+\(P = (Q+A^TP_{k+1}A)-(A^TP_{k+1}^TB^T)(R+B^TP_{k+1}B)^{-1}\), 
+\(Q = (P_{k+1}A)-(R+B^TP_{k+1}B)^{-1}(BP_{k+1}A)\), 
+and \(R = (P_{k+1}^TB)(R+B^TP_{k+1}B)-(B^TP_{k+1}) + \mathbf{tr}(P_{k+1}W_t) + r_{k+1}\).
+
+
+
+As for a final result, results (calculated in matlab) for the total cost at $k=0$, with $N = 30$ is $J_0 = 6.0635\cross 10^3$.
 
 
 
@@ -184,20 +416,15 @@ For the general case, the dynamic program can be defined by the algorithm with s
 
 
 
-
-
-% \newpage
-% \includepdf[pages=-]{MECH6326_HW4.pdf}
-% \newpage
-% \includepdf[pages=-]{MECH6326_HW3_pblm1_evolution.pdf}
 
 % % Appendix ----------------------------------------------
 % \newpage
-% \appendix
+\appendix
 % \bibliographystyle{plain}
 % \bibliography{refs.bib}
 
-
+\newpage
+\includepdf[pages=-]{MECH6326_HW4.pdf}
 
 
 \end{document}
